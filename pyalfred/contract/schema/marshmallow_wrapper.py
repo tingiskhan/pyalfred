@@ -12,7 +12,7 @@ def endpoint(cls):
     return cls.__name__.lower().replace("schema", "")
 
 
-_CUSTOM_HANDLING = {Enum: EnumHandler(), LargeBinary: BytesFieldHandler}
+_CUSTOM_HANDLING = {Enum: EnumHandler(), LargeBinary: BytesFieldHandler()}
 
 
 class AutoMarshmallowSchema(SQLAlchemyAutoSchema):
