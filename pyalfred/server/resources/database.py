@@ -10,8 +10,11 @@ from pyalfred.contract import TreeParser
 
 class DatabaseResource(object):
     def __init__(
-        self, schema: AutoMarshmallowSchema, session_factory: Union[scoped_session, sessionmaker], logger: Logger = None,
-            create_ignore: List[str] = None
+        self,
+        schema: AutoMarshmallowSchema,
+        session_factory: Union[scoped_session, sessionmaker],
+        logger: Logger = None,
+        create_ignore: List[str] = None,
     ):
         """
         Implements a base resources for exposing database models.

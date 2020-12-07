@@ -45,13 +45,7 @@ class TreeParser(object):
         )
         condition = pp.Group(pp.pyparsing_common.identifier + operator + comparison_term)
 
-        expr = pp.operatorPrecedence(
-            condition,
-            [
-                ("&&", 2, pp.opAssoc.LEFT),
-                ("||", 2, pp.opAssoc.LEFT),
-            ],
-        )
+        expr = pp.operatorPrecedence(condition, [("&&", 2, pp.opAssoc.LEFT), ("||", 2, pp.opAssoc.LEFT),],)
 
         return expr
 
