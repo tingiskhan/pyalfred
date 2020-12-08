@@ -1,5 +1,5 @@
 # pyalfred
-`pyalfred` is a `Falcon` based library designed for exposing a SQL database via a REST based API using `SQLAlchemy` and `Marshmallow` for data modelling.
+TODO
 
 Features:
 TODO
