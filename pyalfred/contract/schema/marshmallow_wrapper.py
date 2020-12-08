@@ -4,7 +4,7 @@ from functools import lru_cache
 from typing import Type
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from .utils import find_col_types
-from .handlers import EnumHandler, BytesFieldHandler
+from .handlers import EnumHandler, BytesHandler
 
 
 @classmethod
@@ -12,7 +12,7 @@ def endpoint(cls):
     return cls.__name__.lower().replace("schema", "")
 
 
-_CUSTOM_HANDLING = {Enum: EnumHandler(), LargeBinary: BytesFieldHandler()}
+_CUSTOM_HANDLING = {Enum: EnumHandler(), LargeBinary: BytesHandler()}
 
 
 class AutoMarshmallowSchema(SQLAlchemyAutoSchema):

@@ -1,9 +1,11 @@
 from typing import Callable, Type, TypeVar, List, Union
 from requests import get, put, delete, patch
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from ..treebuilder import TreeParser
-from ..utils import chunk, Constants, serialize, deserialize
+from sqlalchemy import Column
+from pyalfred.contract.query.query_builder import QueryBuilder
+from ..utils import chunk, serialize, deserialize
 from ..schema import AutoMarshmallowSchema
+from ...constants import INTERFACE_CHUNK_SIZE
 from .base import BaseInterface
 
 
@@ -24,12 +26,16 @@ def decorator(f):
 
 
 class DatabaseInterface(BaseInterface):
-    def __init__(self, base_url):
+    def __init__(self, base_url, base_object: Type[T] = None):
         """
         An interface for defining and creating.
         """
         super().__init__(base_url, "")
         self._schema = None
+
+        self._load_only = None
+        if base_object is not None:
+            self._load_only = [k for (k, v) in vars(base_object).items() if isinstance(v, Column)]
 
     @decorator
     def create(self, objects: Union[T, List[T]], load_only=None) -> Union[T, List[T]]:
@@ -40,8 +46,8 @@ class DatabaseInterface(BaseInterface):
 
         res = list()
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
-        for c in chunk(objects, Constants.InterfaceChunk.value):
-            dump = serialize(c, schema, load_only=load_only, many=True)
+        for c in chunk(objects, INTERFACE_CHUNK_SIZE):
+            dump = serialize(c, schema, load_only=load_only or self._load_only, many=True)
             req = self._exec_req(put, endpoint=schema.endpoint(), json=dump)
             res.extend(deserialize(req, schema, many=True))
 
@@ -54,7 +60,7 @@ class DatabaseInterface(BaseInterface):
         """
         Get an object of type specified by Meta object in `schema`.
         :param objtype: The object type to get
-        :param f: A callable with 1 parameter for constructing a BinaryExpression
+        :param f: Function for designing a filter
         :param one: Whether to get only one
         :param latest: Whether to only returns the latest
         :return: The object of type specified by Meta object in `schema`, or all
@@ -63,7 +69,7 @@ class DatabaseInterface(BaseInterface):
         json = None
         schema = AutoMarshmallowSchema.get_schema(objtype)
         if f:
-            fb = TreeParser(schema.Meta.model)
+            fb = QueryBuilder(schema.Meta.model)
             json = fb.to_string(f(schema.Meta.model))
 
         req = self._exec_req(get, endpoint=schema.endpoint(), params={"filter": json, "latest": latest})
@@ -106,7 +112,7 @@ class DatabaseInterface(BaseInterface):
 
         res = list()
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
-        for c in chunk(objects, Constants.InterfaceChunk.value):
+        for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, many=True)
             req = self._exec_req(patch, endpoint=schema.endpoint(), json=dump)
             res.extend(deserialize(req, schema, many=True))

@@ -2,10 +2,11 @@ from typing import Union, List
 from sqlalchemy.orm import scoped_session, sessionmaker
 from falcon.status_codes import HTTP_500
 from logging import Logger
-from ..utils import make_base_logger
-from pyalfred.contract.utils import chunk, Constants, serialize, deserialize
+from pyalfred.contract.utils import chunk, serialize, deserialize
 from pyalfred.contract.schema import AutoMarshmallowSchema
-from pyalfred.contract import TreeParser
+from pyalfred.contract.query import QueryBuilder
+from ..utils import make_base_logger
+from ...constants import CHUNK_SIZE
 
 
 class DatabaseResource(object):
@@ -40,18 +41,18 @@ class DatabaseResource(object):
             query = session.query(self.model).with_for_update()
             filt = req.params.get("filter", None)
             if filt:
-                tb = TreeParser(self.model)
-                be = tb.from_string(filt)
-                query = query.filter(be)
+                query_builder = QueryBuilder(self.model)
+                filter_ = query_builder.from_string(filt)
+                query = query.filter(filter_)
 
             latest = req.params.get("latest", "false").lower() == "true"
             if not latest:
-                q_res = query.all()
+                query_result = query.all()
             else:
-                q_res = query.order_by(self.model.id.desc()).first()
-                q_res = [q_res] if q_res is not None else []
+                query_result = query.order_by(self.model.id.desc()).first()
+                query_result = [query_result] if query_result is not None else []
 
-            res.media = serialize(q_res, self.schema, many=True)
+            res.media = serialize(query_result, self.schema, many=True)
         except Exception as e:
             self.logger.exception(e)
             res.status = HTTP_500
@@ -67,7 +68,7 @@ class DatabaseResource(object):
         session = self.session_factory()
 
         try:
-            for c in chunk(objs, Constants.ChunkSize.value):
+            for c in chunk(objs, CHUNK_SIZE):
                 session.add_all(c)
                 session.flush()
 
@@ -110,7 +111,7 @@ class DatabaseResource(object):
         self.logger.info(f"Now trying to update {len(objs):n} objects")
 
         try:
-            for c in chunk(objs, Constants.ChunkSize.value):
+            for c in chunk(objs, CHUNK_SIZE):
                 for obj in c:
                     session.merge(obj)
 

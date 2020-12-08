@@ -22,15 +22,13 @@ setup(
     author="Victor Gruselius",
     author_email="victor.gruselius@gmail.com",
     description="Library for exposing SQLAlchemy models via REST in Falcon",
-    packages=find_packages(exclude="example"),
+    packages=find_packages(include=NAME),
     install_requires=[
         "sqlalchemy",
         "falcon",
         "marshmallow",
         "marshmallow-enum",
         "marshmallow-sqlalchemy",
-        "dateparser",
         "pyparsing",
-        "cachetools",
     ],
 )

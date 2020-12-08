@@ -19,7 +19,7 @@ class EnumHandler(BaseHandler):
 
 
 # TODO: Dynamic on required
-class BytesFieldHandler(BaseHandler):
+class BytesHandler(BaseHandler):
     def __call__(self, column: InstrumentedAttribute, dict_to_update: Dict[str, Any]):
         required = not check_column_is_nullable(column)
         dict_to_update[column.property.key] = BytesField(required=required, allow_none=True)

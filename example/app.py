@@ -7,7 +7,7 @@ from numpy.random import uniform
 from pyalfred.server.resources import DatabaseResource
 from pyalfred.contract.schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger
-from example.models import Base
+from .models import Base
 
 
 def init_app():
@@ -20,7 +20,7 @@ def init_app():
     Session = scoped_session(sessionmaker(bind=engine))
 
     # ===== Initialize everything ===== #
-    sleep(uniform(0., 5.))
+    sleep(uniform(0.0, 1.0))
     Base.metadata.create_all(bind=engine)
 
     api = Api()
