@@ -28,12 +28,6 @@ class BaseInterface(object):
 
         return resp.json()
 
-    def add_header(self, k: str, v: str):
-        """
-        Add headers to request.
-        :param k: Key
-        :param v: Value
-        """
-
-        self._headers[k] = v
+    def add_header(self, key: str, value: str):
+        self._headers[key] = value
         return self

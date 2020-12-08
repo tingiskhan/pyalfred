@@ -1,5 +1,5 @@
 import pyparsing as pp
-from sqlalchemy import bindparam, Enum, String
+from sqlalchemy import bindparam
 from sqlalchemy.sql.elements import BinaryExpression, BooleanClauseList
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from typing import Union, Type
@@ -12,7 +12,7 @@ from ..schema import AutoMarshmallowSchema
 class QueryBuilder(object):
     def __init__(self, obj: Type[DeclarativeMeta]):
         """
-        Class for building filters from BinaryExpression or from json.
+        Class for building a BinaryExpression from string, or vice versa.
         :param obj: The object
         """
 
@@ -27,7 +27,8 @@ class QueryBuilder(object):
             pp.pyparsing_common.iso8601_datetime.copy()
             | pp.pyparsing_common.iso8601_date.copy()
             | pp.pyparsing_common.number.copy()
-            | pp.QuotedString(STRING_SYMBOL)
+            | pp.QuotedString(STRING_SYMBOL)    # Strings and enums
+            | pp.Word(pp.alphas)                # Enums
         )
 
         condition = pp.Group(pp.pyparsing_common.identifier + operator + comparison_term)
@@ -60,8 +61,8 @@ class QueryBuilder(object):
         left = expression.left.name
         right = self._schema(only=[left]).dump({left: expression.right.value})[left]
 
-        if isinstance(getattr(self._obj, expression.left.name).type, (Enum, String)):
-            right = f'"{right}"'
+        if issubclass(getattr(self._obj, expression.left.name).type.python_type, str):
+            right = f"{STRING_SYMBOL}{right}{STRING_SYMBOL}"
 
         return f"{left}{INVERSE_OPERATOR_MAP[expression.operator]}{right}"
 

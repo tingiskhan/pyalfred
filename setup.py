@@ -22,7 +22,7 @@ setup(
     author="Victor Gruselius",
     author_email="victor.gruselius@gmail.com",
     description="Library for exposing SQLAlchemy models via REST in Falcon",
-    packages=find_packages(include=NAME),
+    packages=find_packages(include=f"{NAME}/*"),
     install_requires=[
         "sqlalchemy",
         "falcon",
