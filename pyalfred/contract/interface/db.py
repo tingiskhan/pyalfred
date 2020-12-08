@@ -26,16 +26,17 @@ def decorator(f):
 
 
 class DatabaseInterface(BaseInterface):
-    def __init__(self, base_url, base_object: Type[T] = None):
+    def __init__(self, base_url, mixin_ignore: Type[object] = None):
         """
         An interface for defining and creating.
+        :param mixin_ignore: If you have a mixin whose columns you wish to ignore when creating.
         """
         super().__init__(base_url, "")
         self._schema = None
 
         self._load_only = None
-        if base_object is not None:
-            self._load_only = [k for (k, v) in vars(base_object).items() if isinstance(v, Column)]
+        if mixin_ignore is not None:
+            self._load_only = [k for (k, v) in vars(mixin_ignore).items() if isinstance(v, Column)]
 
     @decorator
     def create(self, objects: Union[T, List[T]], load_only=None) -> Union[T, List[T]]:
