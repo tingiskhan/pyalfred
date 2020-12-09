@@ -1,9 +1,8 @@
 from typing import Callable, Type, TypeVar, List, Union
 from requests import get, put, delete, patch
 from sqlalchemy.ext.declarative import DeclarativeMeta
-from sqlalchemy import Column
 from pyalfred.contract.query.query_builder import QueryBuilder
-from ..utils import chunk, serialize, deserialize
+from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
 from ..schema import AutoMarshmallowSchema
 from ...constants import INTERFACE_CHUNK_SIZE
 from .base import BaseInterface
@@ -36,7 +35,7 @@ class DatabaseInterface(BaseInterface):
 
         self._load_only = None
         if mixin_ignore is not None:
-            self._load_only = [k for (k, v) in vars(mixin_ignore).items() if isinstance(v, Column)]
+            self._load_only = get_columns_in_base_mixin(mixin_ignore)
 
     @decorator
     def create(self, objects: Union[T, List[T]], load_only=None) -> Union[T, List[T]]:

@@ -1,10 +1,11 @@
-from typing import Union, List
+from typing import Union, List, Type
 from sqlalchemy.orm import scoped_session, sessionmaker
 from falcon.status_codes import HTTP_500
 from logging import Logger
 from pyalfred.contract.utils import chunk, serialize, deserialize
 from pyalfred.contract.schema import AutoMarshmallowSchema
 from pyalfred.contract.query import QueryBuilder
+from pyalfred.contract.utils import get_columns_in_base_mixin
 from ..utils import make_base_logger
 from ...constants import CHUNK_SIZE
 
@@ -16,6 +17,7 @@ class DatabaseResource(object):
         session_factory: Union[scoped_session, sessionmaker],
         logger: Logger = None,
         create_ignore: List[str] = None,
+        mixin_ignore: Type[object] = None
     ):
         """
         Implements a base resources for exposing database models.
@@ -23,12 +25,18 @@ class DatabaseResource(object):
         :param session_factory: The sqlalchemy scoped_session object to use
         :param logger: The logger to use
         :param create_ignore: Fields of the class to ignore deserializing when creating object. E.g. usually the PKs
+        :param mixin_ignore: If all of your models inherit from a single mixin that defines server side generated
+        columns, you may pass that here.
         """
 
         self.schema = schema
         self.session_factory = session_factory
         self.logger = logger or make_base_logger(schema.endpoint())
-        self._create_ignore = create_ignore
+
+        if mixin_ignore is not None:
+            self._create_ignore = get_columns_in_base_mixin(mixin_ignore)
+        else:
+            self._create_ignore = create_ignore or []
 
     @property
     def model(self):
