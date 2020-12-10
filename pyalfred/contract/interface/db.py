@@ -37,6 +37,10 @@ class DatabaseInterface(BaseInterface):
         if mixin_ignore is not None:
             self._load_only = get_columns_in_base_mixin(mixin_ignore)
 
+    def _load_only_fields(self, load_only, schema):
+        res = list(load_only or self._load_only) or []
+        return res + getattr(schema, "load_only_fields", [])
+
     @decorator
     def create(self, objects: Union[T, List[T]], load_only=None) -> Union[T, List[T]]:
         """
@@ -46,8 +50,10 @@ class DatabaseInterface(BaseInterface):
 
         res = list()
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
+
+        load_only_ = self._load_only_fields(load_only, schema)
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
-            dump = serialize(c, schema, load_only=load_only or self._load_only, many=True)
+            dump = serialize(c, schema, load_only=load_only_, many=True)
             req = self._exec_req(put, endpoint=schema.endpoint(), json=dump)
             res.extend(deserialize(req, schema, many=True))
 

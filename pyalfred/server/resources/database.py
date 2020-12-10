@@ -16,7 +16,6 @@ class DatabaseResource(object):
         schema: AutoMarshmallowSchema,
         session_factory: Union[scoped_session, sessionmaker],
         logger: Logger = None,
-        create_ignore: List[str] = None,
         mixin_ignore: Type[object] = None
     ):
         """
@@ -24,7 +23,6 @@ class DatabaseResource(object):
         :param schema: The schema to use, must be marshmallow.Schema
         :param session_factory: The sqlalchemy scoped_session object to use
         :param logger: The logger to use
-        :param create_ignore: Fields of the class to ignore deserializing when creating object. E.g. usually the PKs
         :param mixin_ignore: If all of your models inherit from a single mixin that defines server side generated
         columns, you may pass that here.
         """
@@ -33,14 +31,19 @@ class DatabaseResource(object):
         self.session_factory = session_factory
         self.logger = logger or make_base_logger(schema.endpoint())
 
+        self._create_ignore = []
         if mixin_ignore is not None:
-            self._create_ignore = get_columns_in_base_mixin(mixin_ignore)
-        else:
-            self._create_ignore = create_ignore or []
+            self._create_ignore += get_columns_in_base_mixin(mixin_ignore)
 
     @property
     def model(self):
         return self.schema.Meta.model
+
+    @property
+    def dump_only_fields(self):
+        schema_fields_to_load = list(getattr(self.schema, "load_only_fields", []))
+
+        return self._create_ignore + schema_fields_to_load
 
     def on_get(self, req, res):
         session = self.session_factory()
@@ -71,7 +74,7 @@ class DatabaseResource(object):
         return res
 
     def on_put(self, req, res):
-        objs = deserialize(req.media, self.schema, many=True, dump_only=self._create_ignore)
+        objs = deserialize(req.media, self.schema, dump_only=self.dump_only_fields, many=True)
         self.logger.info(f"Now trying to create {len(objs):n} objects")
         session = self.session_factory()
 
