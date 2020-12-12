@@ -37,12 +37,15 @@ class AutoMarshmallowSchema(SQLAlchemyAutoSchema):
 
     @staticmethod
     def _handle_label_fields(base_class: Type[DeclarativeMeta], state_dict: Dict[str, Any]):
+        key = "load_only_fields"
         for column in get_columns_of_object(base_class):
             if not isinstance(column.property.expression, Label):
                 continue
 
-            if "load_only_fields" not in state_dict:
-                state_dict["load_only_fields"] = []
+            if key not in state_dict:
+                state_dict[key] = []
+
+            state_dict[key] += [column.name]
 
             state_dict["load_only_fields"] += [column.name]
 

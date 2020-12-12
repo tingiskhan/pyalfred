@@ -59,7 +59,13 @@ class QueryBuilder(object):
             return f"{left}{INVERSE_ASSOC_OPERATOR_MAP[expression.operator]}{right}"
 
         left = expression.left.name
-        right = self._schema(only=[left]).dump({left: expression.right.value})[left]
+
+        if issubclass(expression.left.type.python_type, bool):
+            value = str(expression.right)
+        else:
+            value = expression.right.value
+
+        right = self._schema(only=[left]).dump({left: value})[left]
 
         if issubclass(getattr(self._obj, expression.left.name).type.python_type, str):
             right = f"{STRING_SYMBOL}{right}{STRING_SYMBOL}"

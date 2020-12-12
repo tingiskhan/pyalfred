@@ -1,6 +1,5 @@
 from typing import Callable, Type, TypeVar, List, Union
 from requests import get, put, delete, patch
-from sqlalchemy.ext.declarative import DeclarativeMeta
 from pyalfred.contract.query.query_builder import QueryBuilder
 from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
 from ..schema import AutoMarshmallowSchema
@@ -8,7 +7,7 @@ from ...constants import INTERFACE_CHUNK_SIZE
 from .base import BaseInterface
 
 
-T = TypeVar("T", bound=DeclarativeMeta)
+T = TypeVar("T")
 
 
 def decorator(f):

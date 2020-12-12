@@ -40,7 +40,7 @@ class DatabaseResource(object):
         return self.schema.Meta.model
 
     @property
-    def dump_only_fields(self):
+    def fields_to_skip_on_create(self):
         schema_fields_to_load = list(getattr(self.schema, "load_only_fields", []))
 
         return self._create_ignore + schema_fields_to_load
@@ -74,7 +74,7 @@ class DatabaseResource(object):
         return res
 
     def on_put(self, req, res):
-        objs = deserialize(req.media, self.schema, dump_only=self.dump_only_fields, many=True)
+        objs = deserialize(req.media, self.schema, dump_only=self.fields_to_skip_on_create, many=True)
         self.logger.info(f"Now trying to create {len(objs):n} objects")
         session = self.session_factory()
 
