@@ -56,7 +56,7 @@ class QueryBuilder(object):
             left = self.to_string(expression.clauses[0])
             right = self.to_string(expression.clauses[1])
 
-            return f"{left}{INVERSE_ASSOC_OPERATOR_MAP[expression.operator]}{right}"
+            return f"({left} {INVERSE_ASSOC_OPERATOR_MAP[expression.operator]} {right})"
 
         left = expression.left.name
 
@@ -70,7 +70,7 @@ class QueryBuilder(object):
         if issubclass(getattr(self._obj, expression.left.name).type.python_type, str):
             right = f"{STRING_SYMBOL}{right}{STRING_SYMBOL}"
 
-        return f"{left}{INVERSE_OPERATOR_MAP[expression.operator]}{right}"
+        return f"({left} {INVERSE_OPERATOR_MAP[expression.operator]} {right})"
 
     def from_string(self, expression: str):
         root = self._parser.parseString(expression)[0]

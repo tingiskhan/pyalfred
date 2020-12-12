@@ -16,7 +16,8 @@ class DatabaseResource(object):
         schema: AutoMarshmallowSchema,
         session_factory: Union[scoped_session, sessionmaker],
         logger: Logger = None,
-        mixin_ignore: Type[object] = None
+        mixin_ignore: Type[object] = None,
+        create_ignore: List[str] = None
     ):
         """
         Implements a base resources for exposing database models.
@@ -34,6 +35,8 @@ class DatabaseResource(object):
         self._create_ignore = []
         if mixin_ignore is not None:
             self._create_ignore += get_columns_in_base_mixin(mixin_ignore)
+        elif create_ignore is not None:
+            self._create_ignore += create_ignore
 
     @property
     def model(self):
