@@ -93,8 +93,7 @@ class DatabaseResource(HTTPEndpoint):
         return JSONResponse(media, status)
 
     async def put(self, req: Request):
-        json = await req.json()
-        objs = deserialize(json, self.schema, dump_only=self.fields_to_skip_on_create, many=True)
+        objs = deserialize(await req.json(), self.schema, dump_only=self.fields_to_skip_on_create, many=True)
         self.logger.info(f"Now trying to create {len(objs):n} objects")
         session = self.session_factory()
 
@@ -139,8 +138,7 @@ class DatabaseResource(HTTPEndpoint):
         return JSONResponse(media, status)
 
     async def patch(self, req: Request):
-        json = await req.json()
-        objs = deserialize(json, self.schema, many=True)
+        objs = deserialize(await req.json(), self.schema, many=True)
         session = self.session_factory()
         self.logger.info(f"Now trying to update {len(objs):n} objects")
 
