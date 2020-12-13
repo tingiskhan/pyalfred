@@ -1,10 +1,10 @@
-from falcon import API as Api
+from starlette.applications import Starlette
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 import os
 from time import sleep
 from numpy.random import uniform
-from pyalfred.server.resources import DatabaseResource
+from pyalfred.server.resources import StarletteResource
 from pyalfred.contract.schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger
 from .models import Base
@@ -23,13 +23,13 @@ def init_app():
     sleep(uniform(0.0, 1.0))
     Base.metadata.create_all(bind=engine)
 
-    api = Api()
+    app = Starlette()
 
     for base in AutoMarshmallowSchema.get_subclasses(Base):
         s = AutoMarshmallowSchema.generate_schema(base)
-        api.add_route(f"/{s.endpoint()}", DatabaseResource(s, Session, create_ignore=["id"]))
+        app.add_route(f"/{s.endpoint()}", StarletteResource.make_endpoint(s, Session, create_ignore=["id"]))
 
     logger = make_base_logger(__name__)
     logger.info("Successfully registered all views")
 
-    return api
+    return app
