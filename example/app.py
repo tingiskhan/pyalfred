@@ -4,7 +4,7 @@ from sqlalchemy import create_engine
 import os
 from time import sleep
 from numpy.random import uniform
-from pyalfred.server.resources import StarletteResource
+from pyalfred.server.resources import DatabaseResource
 from pyalfred.contract.schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger
 from .models import Base
@@ -27,7 +27,7 @@ def init_app():
 
     for base in AutoMarshmallowSchema.get_subclasses(Base):
         s = AutoMarshmallowSchema.generate_schema(base)
-        app.add_route(f"/{s.endpoint()}", StarletteResource.make_endpoint(s, Session, create_ignore=["id"]))
+        app.add_route(f"/{s.endpoint()}", DatabaseResource.make_endpoint(s, Session, create_ignore=["id"]))
 
     logger = make_base_logger(__name__)
     logger.info("Successfully registered all views")
