@@ -25,7 +25,7 @@ setup(
     packages=find_packages(include=(NAME, f"{NAME}.*")),
     install_requires=[
         "sqlalchemy",
-        "falcon",
+        "starlette",
         "marshmallow",
         "marshmallow-enum",
         "marshmallow-sqlalchemy",
