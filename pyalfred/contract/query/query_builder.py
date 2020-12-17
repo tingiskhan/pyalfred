@@ -33,12 +33,9 @@ class QueryBuilder(object):
 
         condition = pp.Group(pp.pyparsing_common.identifier + operator + comparison_term)
 
-        return pp.operatorPrecedence(condition, [(k, 2, pp.opAssoc.LEFT) for k in ASSOC_OPERATOR])
+        return pp.infixNotation(condition, [(k, 2, pp.opAssoc.LEFT) for k in ASSOC_OPERATOR])
 
     def _recursion(self, expr: pp.ParseResults) -> Union[BinaryExpression, BooleanClauseList]:
-        if len(expr) != 3:
-            raise ValueError("Something went wrong when parsing, cannot be more than three elements!")
-
         if not isinstance(expr[0], pp.ParseResults):
             attr = getattr(self._obj, expr[0])
             value = self._schema(only=[attr.name]).load({attr.name: expr[2]})[attr.name]
@@ -46,10 +43,13 @@ class QueryBuilder(object):
             return BinaryExpression(attr, bindparam(None, value, type_=attr.type), OPERATOR_MAP[expr[1]])
 
         left = self._recursion(expr[0])
-        right = self._recursion(expr[-1])
-        operator = expr[1]
+        for i in range(1, len(expr), 2):
+            operator = expr[i]
+            right = self._recursion(expr[i + 1])
 
-        return ASSOC_OPERATOR[operator](left, right)
+            left = ASSOC_OPERATOR[operator](left, right)
+
+        return left
 
     def to_string(self, expression: Union[BooleanClauseList, BinaryExpression]):
         if isinstance(expression, BooleanClauseList):
