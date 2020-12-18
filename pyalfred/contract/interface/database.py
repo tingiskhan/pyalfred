@@ -1,5 +1,4 @@
 from typing import Callable, Type, TypeVar, List, Union
-from requests import get, put, delete, patch
 from pyalfred.contract.query.query_builder import QueryBuilder
 from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
 from ..schema import AutoMarshmallowSchema
@@ -29,7 +28,7 @@ class DatabaseInterface(BaseInterface):
         An interface for defining and creating.
         :param mixin_ignore: If you have a mixin whose columns you wish to ignore when creating.
         """
-        super().__init__(base_url, "")
+        super().__init__(base_url)
         self._schema = None
 
         self._load_only = None
@@ -41,7 +40,7 @@ class DatabaseInterface(BaseInterface):
         return res + getattr(schema, "load_only_fields", [])
 
     @decorator
-    def create(self, objects: Union[T, List[T]], load_only=None) -> Union[T, List[T]]:
+    def create(self, objects: Union[T, List[T]], load_only=None, batched=False) -> Union[T, List[T]]:
         """
         Create an object of type specified by Meta object in `schema`.
         :return: An object of type specified by Meta object in `schema`
@@ -53,8 +52,8 @@ class DatabaseInterface(BaseInterface):
         load_only_ = self._load_only_fields(load_only, schema)
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, load_only=load_only_, many=True)
-            req = self._exec_req(put, endpoint=schema.endpoint(), json=dump)
-            res.extend(deserialize(req, schema, many=True))
+            req = self._make_request("put", schema.endpoint(), json=dump, params={"batched": batched})
+            res.extend(deserialize(self._send_request(req), schema, many=True))
 
         if len(objects) < 2:
             return res[0]
@@ -77,8 +76,8 @@ class DatabaseInterface(BaseInterface):
             fb = QueryBuilder(schema.Meta.model)
             json = fb.to_string(f(schema.Meta.model))
 
-        req = self._exec_req(get, endpoint=schema.endpoint(), params={"filter": json, "latest": latest})
-        res = deserialize(req, schema, many=True)
+        req = self._make_request("get", endpoint=schema.endpoint(), params={"filter": json, "latest": latest})
+        res = deserialize(self._send_request(req), schema, many=True)
 
         if not (one or latest):
             return res
@@ -95,23 +94,22 @@ class DatabaseInterface(BaseInterface):
     def delete(self, objects: Union[T, List[T]]) -> int:
         """
         Deletes an object with `id_` of type specified by Meta object in `schema`.
-        :param objects: The objects to delete
         :return: The number of affected items
         """
 
         deleted = 0
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
         for obj in objects:
-            req = self._exec_req(delete, endpoint=schema.endpoint(), params={"id": obj.id})
-            deleted += req["deleted"]
+            req = self._make_request("delete", endpoint=schema.endpoint(), params={"id": obj.id})
+            resp = self._send_request(req)
+            deleted += resp["deleted"]
 
         return deleted
 
     @decorator
-    def update(self, objects: Union[T, List[T]]) -> List[T]:
+    def update(self, objects: Union[T, List[T]], batched=False) -> List[T]:
         """
         Updates an object with the new values.
-        :param objects: The object(s) to update with new values
         :return: The update object
         """
 
@@ -119,7 +117,7 @@ class DatabaseInterface(BaseInterface):
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, many=True)
-            req = self._exec_req(patch, endpoint=schema.endpoint(), json=dump)
-            res.extend(deserialize(req, schema, many=True))
+            req = self._make_request("patch", schema.endpoint(), json=dump, params={"batched": batched})
+            res.extend(deserialize(self._send_request(req), schema, many=True))
 
         return res

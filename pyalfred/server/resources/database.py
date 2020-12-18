@@ -13,6 +13,10 @@ from ..utils import make_base_logger
 from ...constants import CHUNK_SIZE
 
 
+def get_bool_from_string(x: str):
+    return x.lower() == "true"
+
+
 class DatabaseResource(HTTPEndpoint):
     schema = None
     session_factory = None
@@ -93,6 +97,8 @@ class DatabaseResource(HTTPEndpoint):
         return JSONResponse(media, status)
 
     async def put(self, req: Request):
+        batched = get_bool_from_string(req.query_params.get("batched", "false"))
+
         objs = deserialize(await req.json(), self.schema, dump_only=self.fields_to_skip_on_create, many=True)
         self.logger.info(f"Now trying to create {len(objs):n} objects")
         session = self.session_factory()
@@ -104,7 +110,8 @@ class DatabaseResource(HTTPEndpoint):
 
             session.commit()
             self.logger.info(f"Successfully created {len(objs):n} objects, now trying to serialize")
-            media = serialize(objs, self.schema, many=True)
+
+            media = serialize(objs, self.schema, many=True) if not batched else []
             status = HTTP_200_OK
         except Exception as e:
             self.logger.exception(e)
@@ -125,6 +132,7 @@ class DatabaseResource(HTTPEndpoint):
             session.commit()
 
             self.logger.info(f"Successfully deleted {nums:n} objects")
+
             media = {"deleted": nums}
             status = HTTP_200_OK
         except Exception as e:
@@ -138,6 +146,8 @@ class DatabaseResource(HTTPEndpoint):
         return JSONResponse(media, status)
 
     async def patch(self, req: Request):
+        batched = get_bool_from_string(req.query_params.get("batched", "false"))
+
         objs = deserialize(await req.json(), self.schema, many=True)
         session = self.session_factory()
         self.logger.info(f"Now trying to update {len(objs):n} objects")
@@ -151,7 +161,8 @@ class DatabaseResource(HTTPEndpoint):
 
             session.commit()
             self.logger.info(f"Successfully updated {len(objs):n} objects, now trying to serialize")
-            media = serialize(objs, self.schema, many=True)
+
+            media = serialize(objs, self.schema, many=True) if not batched else []
             status = HTTP_200_OK
         except Exception as e:
             self.logger.exception(e)
