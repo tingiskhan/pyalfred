@@ -1,9 +1,8 @@
 from typing import Dict, Any, TypeVar, Type
-import grequests
 import requests
 
 
-T = TypeVar("T", grequests.AsyncRequest, requests.Request)
+T = TypeVar("T", bound=requests.Request)
 
 
 class BaseInterface(object):
