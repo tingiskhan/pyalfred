@@ -49,7 +49,7 @@ class DatabaseInterface(BaseInterface):
         res = list()
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
 
-        load_only_ = self._load_only_fields(load_only, schema)
+        load_only_ = self._load_only_fields(load_only or list(), schema)
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, load_only=load_only_, many=True)
             req = self._make_request("put", schema.endpoint(), json=dump, params={"batched": batched})
