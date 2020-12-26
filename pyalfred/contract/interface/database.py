@@ -31,12 +31,12 @@ class DatabaseInterface(BaseInterface):
         super().__init__(base_url)
         self._schema = None
 
-        self._load_only = None
+        self._load_only = list()
         if mixin_ignore is not None:
             self._load_only = get_columns_in_base_mixin(mixin_ignore)
 
     def _load_only_fields(self, load_only, schema):
-        res = list(load_only or self._load_only) or []
+        res = load_only if any(load_only) else self._load_only
         return res + getattr(schema, "load_only_fields", [])
 
     @decorator
