@@ -55,7 +55,7 @@ class DatabaseInterface(BaseInterface):
             req = self._make_request("put", schema.endpoint(), json=dump, params={"batched": batched})
             res.extend(deserialize(self._send_request(req), schema, many=True))
 
-        if any(objects) and len(objects) < 2:
+        if any(res) and len(res) < 2:
             return res[0]
 
         return res
