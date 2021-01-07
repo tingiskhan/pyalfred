@@ -60,13 +60,15 @@ class DatabaseInterface(BaseInterface):
 
         return res
 
-    def get(self, objtype: Type[T], f: Callable[[T], bool] = None, one=False, latest=False) -> Union[T, List[T], None]:
+    def get(
+        self, objtype: Type[T], f: Callable[[T], bool] = None, one=False, operations: str = None
+    ) -> Union[T, List[T], None]:
         """
         Get an object of type specified by Meta object in `schema`.
         :param objtype: The object type to get
         :param f: Function for designing a filter
         :param one: Whether to get only one
-        :param latest: Whether to only returns the latest
+        :param operations: Whether to apply any special operations
         :return: The object of type specified by Meta object in `schema`, or all
         """
 
@@ -76,19 +78,16 @@ class DatabaseInterface(BaseInterface):
             fb = QueryBuilder(schema.Meta.model)
             json = fb.to_string(f(schema.Meta.model))
 
-        req = self._make_request("get", endpoint=schema.endpoint(), params={"filter": json, "latest": latest})
+        req = self._make_request("get", endpoint=schema.endpoint(), params={"filter": json, "ops": operations})
         res = deserialize(self._send_request(req), schema, many=True)
 
-        if not (one or latest):
+        if not one:
             return res
 
         if len(res) > 1:
             raise ValueError("More than 1 elements exist!")
 
-        if len(res) == 1:
-            return res[0]
-
-        return None
+        return next(iter(res), None)
 
     @decorator
     def delete(self, objects: Union[T, List[T]]) -> int:

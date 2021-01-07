@@ -9,7 +9,7 @@ from pyalfred.contract.utils import chunk, serialize, deserialize
 from pyalfred.contract.schema import AutoMarshmallowSchema
 from pyalfred.contract.query import QueryBuilder
 from pyalfred.contract.utils import get_columns_in_base_mixin
-from ..utils import make_base_logger
+from ..utils import make_base_logger, apply_filter_from_string
 from ...constants import CHUNK_SIZE
 
 
@@ -52,7 +52,7 @@ class DatabaseResource(HTTPEndpoint):
             "schema": schema,
             "session_factory": session_factory,
             "logger": logger or make_base_logger(schema.endpoint()),
-            "_create_ignore": _create_ignore
+            "_create_ignore": _create_ignore,
         }
 
         return type(f"DatabaseResource_{schema.endpoint().title()}", (DatabaseResource,), state_dict)
@@ -72,20 +72,21 @@ class DatabaseResource(HTTPEndpoint):
 
         try:
             query = session.query(self.model).with_for_update()
-            filt = req.query_params.get("filter", None)
-            if filt:
+            filter_ = req.query_params.get("filter", None)
+            if filter_:
                 query_builder = QueryBuilder(self.model)
-                filter_ = query_builder.from_string(filt)
+                filter_ = query_builder.from_string(filter_)
                 query = query.filter(filter_)
 
-            latest = req.query_params.get("latest", "false").lower() == "true"
-            if not latest:
-                query_result = query.all()
-            else:
-                query_result = query.order_by(self.model.id.desc()).first()
-                query_result = [query_result] if query_result is not None else []
+            ops = req.query_params.get("ops", "")
+            result = apply_filter_from_string(self.model, query, ops.split(","))
 
-            media = serialize(query_result, self.schema, many=True)
+            if result is None:
+                result = list()
+            elif not isinstance(result, list):
+                result = [result]
+
+            media = serialize(result, self.schema, many=True)
             status = HTTP_200_OK
         except Exception as e:
             self.logger.exception(e)

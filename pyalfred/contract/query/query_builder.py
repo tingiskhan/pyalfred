@@ -27,8 +27,8 @@ class QueryBuilder(object):
             pp.pyparsing_common.iso8601_datetime.copy()
             | pp.pyparsing_common.iso8601_date.copy()
             | pp.pyparsing_common.number.copy()
-            | pp.QuotedString(STRING_SYMBOL)    # Strings and enums
-            | pp.Word(pp.alphas)                # Enums
+            | pp.QuotedString(STRING_SYMBOL)  # Strings and enums
+            | pp.Word(pp.alphas)  # Enums
         )
 
         condition = pp.Group(pp.pyparsing_common.identifier + operator + comparison_term)

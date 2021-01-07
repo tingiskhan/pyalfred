@@ -14,7 +14,7 @@ def init_app():
     # ===== Database related ===== #
     engine = create_engine(
         os.environ.get("SQLALCHEMY_DATABASE_URI", "sqlite:///debug-database.db?check_same_thread=false"),
-        **os.environ.get("SQLALCHEMY_ENGINE_OPTIONS", {"pool_pre_ping": True})
+        **os.environ.get("SQLALCHEMY_ENGINE_OPTIONS", {"pool_pre_ping": True}),
     )
 
     Session = scoped_session(sessionmaker(bind=engine))
