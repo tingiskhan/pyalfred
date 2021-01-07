@@ -20,13 +20,13 @@ def make_base_logger(name: str) -> logging.Logger:
 
 # TODO: Do better
 def apply_filter_from_string(model, query: Query, filters: Sequence[str]):
-    if not filters:
-        return query.all()
-
     for f in filters:
         as_lower = f.lower()
 
-        if as_lower.startswith("order by"):
+        if f == "":
+            pass
+
+        elif as_lower.startswith("order by"):
             attribute_name = as_lower.replace("order by", "")
 
             descending = False
