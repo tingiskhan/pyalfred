@@ -3,7 +3,7 @@ from pyalfred.contract.query.query_builder import QueryBuilder
 from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
 from ..schema import AutoMarshmallowSchema
 from ...constants import INTERFACE_CHUNK_SIZE
-from .base import BaseInterface
+from .base import BaseClient
 
 
 T = TypeVar("T")
@@ -22,7 +22,7 @@ def decorator(f):
     return wrapper
 
 
-class DatabaseInterface(BaseInterface):
+class Client(BaseClient):
     def __init__(self, base_url, mixin_ignore: Type[object] = None):
         """
         An interface for defining and creating.

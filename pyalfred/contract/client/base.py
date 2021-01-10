@@ -5,7 +5,7 @@ import requests
 T = TypeVar("T", bound=requests.Request)
 
 
-class BaseInterface(object):
+class BaseClient(object):
     def __init__(self, base_url: str, endpoint: str = ""):
         """
         Defines a base class for interfaces.
