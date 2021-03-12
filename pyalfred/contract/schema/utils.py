@@ -1,8 +1,14 @@
 from sqlalchemy.orm.attributes import InstrumentedAttribute
+from sqlalchemy.orm.properties import ColumnProperty
 
 
-def get_columns_of_object(base):
-    return (c for c in vars(base).values() if isinstance(c, InstrumentedAttribute))
+def get_columns_of_object(base, prop_type=ColumnProperty):
+    res = (c for c in vars(base).values() if isinstance(c, InstrumentedAttribute))
+
+    if prop_type is None:
+        return res
+
+    return (c for c in res if isinstance(c.property, prop_type))
 
 
 def find_col_types(base, type_):
