@@ -1,6 +1,6 @@
 from typing import List, Dict, Any, TypeVar, Type
 from sqlalchemy import Column
-from .schema import AutoMarshmallowSchema
+from auto_schema import AutoMarshmallowSchema
 
 T = TypeVar("T")
 
