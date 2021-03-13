@@ -1,7 +1,7 @@
 from typing import Callable, Type, TypeVar, List, Union
 from pyalfred.contract.query.query_builder import QueryBuilder
 from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
-from ..schema import AutoMarshmallowSchema
+from auto_schema import AutoMarshmallowSchema
 from ...constants import INTERFACE_CHUNK_SIZE
 from .base import BaseClient
 
