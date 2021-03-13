@@ -5,7 +5,7 @@ import os
 from pyalfred.server.resources import DatabaseResource
 from auto_schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger
-from example.models import Base
+from models import Base
 
 
 def init_app():
