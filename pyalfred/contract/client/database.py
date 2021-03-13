@@ -1,6 +1,6 @@
 from typing import Callable, Type, TypeVar, List, Union
 from pyalfred.contract.query.query_builder import QueryBuilder
-from ..utils import chunk, serialize, deserialize, get_columns_in_base_mixin
+from ..utils import chunk, serialize, get_columns_in_base_mixin
 from auto_schema import AutoMarshmallowSchema
 from ...constants import INTERFACE_CHUNK_SIZE
 from .base import BaseClient
@@ -54,10 +54,13 @@ class Client(BaseClient):
 
         load_only_ = self._load_only_fields(load_only or list(), schema)
         endpoint = self.make_endpoint(schema)
+
+        init_schema = schema(many=True)
+
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, load_only=load_only_, many=True)
             req = self._make_request("put", endpoint, json=dump, params={"batched": batched})
-            res.extend(deserialize(self._send_request(req), schema, many=True))
+            res.extend(init_schema.load_instance(self._send_request(req)))
 
         if any(res) and len(res) < 2:
             return res[0]
@@ -83,7 +86,9 @@ class Client(BaseClient):
             json = fb.to_string(f(schema.Meta.model))
 
         req = self._make_request("get", endpoint=self.make_endpoint(schema), params={"filter": json, "ops": operations})
-        res = deserialize(self._send_request(req), schema, many=True)
+
+        init_schema = schema(many=True)
+        res = init_schema.load_instance(self._send_request(req))
 
         if not one:
             return res
@@ -120,9 +125,11 @@ class Client(BaseClient):
         res = list()
         schema = AutoMarshmallowSchema.get_schema(type(objects[0]))
         endpoint = self.make_endpoint(schema)
+
+        init_schema = schema(many=True)
         for c in chunk(objects, INTERFACE_CHUNK_SIZE):
             dump = serialize(c, schema, many=True)
             req = self._make_request("patch", endpoint, json=dump, params={"batched": batched})
-            res.extend(deserialize(self._send_request(req), schema, many=True))
+            res.extend(init_schema.load_instance(self._send_request(req)))
 
         return res
