@@ -3,6 +3,7 @@ from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 import os
 from pyalfred.server.resources import DatabaseResource
+from pyalfred.contract.client import Client
 from auto_schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger
 from models import Base
@@ -21,11 +22,12 @@ def init_app():
 
     for base in AutoMarshmallowSchema.get_subclasses(Base):
         s = AutoMarshmallowSchema.generate_schema(base)
-        endpoint = s.__name__.lower().replace("schema", "")
+        endpoint = Client.make_endpoint(s)
 
         logger.info(f"Registering '{endpoint}'")
         app.add_route(f"/{endpoint}", DatabaseResource.make_endpoint(s, Session, create_ignore=["id"]))
 
     logger.info("Successfully registered all views")
+    logger.info(f"Registered routes: {', '.join(r.path for r in app.routes)}")
 
     return app
