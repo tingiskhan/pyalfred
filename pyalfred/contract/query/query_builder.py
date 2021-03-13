@@ -3,9 +3,9 @@ from sqlalchemy import bindparam
 from sqlalchemy.sql.elements import BinaryExpression, BooleanClauseList
 from sqlalchemy.ext.declarative import DeclarativeMeta
 from typing import Union, Type
+from auto_schema import AutoMarshmallowSchema
 from .operators import OPERATOR_MAP, INVERSE_OPERATOR_MAP, ASSOC_OPERATOR, INVERSE_ASSOC_OPERATOR_MAP
 from ...constants import STRING_SYMBOL
-from ..schema import AutoMarshmallowSchema
 
 
 # Adapted from: https://stackoverflow.com/questions/11133339/parsing-a-complex-logical-expression-in-pyparsing-in-a-binary-tree-fashion

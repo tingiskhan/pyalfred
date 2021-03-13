@@ -22,11 +22,9 @@ setup(
     description="Library for exposing SQLAlchemy models via REST in Falcon",
     packages=find_packages(include=(NAME, f"{NAME}.*")),
     install_requires=[
+        "auto_schema @ git+https://github.com/tingiskhan/auto-schema#egg=auto_schema"
         "sqlalchemy",
         "starlette",
-        "marshmallow",
-        "marshmallow-enum",
-        "marshmallow-sqlalchemy",
         "pyparsing",
     ],
 )

@@ -5,8 +5,8 @@ from starlette.endpoints import HTTPEndpoint
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_200_OK
-from pyalfred.contract.utils import chunk, serialize, deserialize
-from pyalfred.contract.schema import AutoMarshmallowSchema
+from pyalfred.contract.utils import chunk, serialize
+from auto_schema import AutoMarshmallowSchema
 from pyalfred.contract.query import QueryBuilder
 from pyalfred.contract.utils import get_columns_in_base_mixin
 from ..utils import make_base_logger, apply_filter_from_string
@@ -27,7 +27,7 @@ class DatabaseResource(HTTPEndpoint):
     @classmethod
     def make_endpoint(
         cls,
-        schema: AutoMarshmallowSchema,
+        schema: Type[AutoMarshmallowSchema],
         session_factory: Union[scoped_session, sessionmaker],
         logger: Logger = None,
         mixin_ignore: Type[object] = None,
@@ -51,11 +51,11 @@ class DatabaseResource(HTTPEndpoint):
         state_dict = {
             "schema": schema,
             "session_factory": session_factory,
-            "logger": logger or make_base_logger(schema.endpoint()),
+            "logger": logger or make_base_logger(schema.__name__),
             "_create_ignore": _create_ignore,
         }
 
-        return type(f"DatabaseResource_{schema.endpoint().title()}", (DatabaseResource,), state_dict)
+        return type(f"DatabaseResource_{schema.__name__}", (DatabaseResource,), state_dict)
 
     @property
     def model(self):
@@ -100,7 +100,9 @@ class DatabaseResource(HTTPEndpoint):
     async def put(self, req: Request):
         batched = get_bool_from_string(req.query_params.get("batched", "false"))
 
-        objs = deserialize(await req.json(), self.schema, dump_only=self.fields_to_skip_on_create, many=True)
+        schema = self.schema(dump_only=self.fields_to_skip_on_create, many=True)
+        objs = schema.load_instance(await req.json())
+
         self.logger.info(f"Now trying to create {len(objs):n} objects")
         session = self.session_factory()
 
@@ -149,7 +151,9 @@ class DatabaseResource(HTTPEndpoint):
     async def patch(self, req: Request):
         batched = get_bool_from_string(req.query_params.get("batched", "false"))
 
-        objs = deserialize(await req.json(), self.schema, many=True)
+        schema = self.schema(many=True)
+        objs = schema.load_instance(await req.json())
+
         session = self.session_factory()
         self.logger.info(f"Now trying to update {len(objs):n} objects")
 
