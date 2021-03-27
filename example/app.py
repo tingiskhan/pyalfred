@@ -2,7 +2,7 @@ from starlette.applications import Starlette
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy import create_engine
 import os
-from pyalfred.server.resources import DatabaseResource
+from pyalfred.server import DatabaseResource
 from pyalfred.contract.client import Client
 from auto_schema import AutoMarshmallowSchema
 from pyalfred.server.utils import make_base_logger

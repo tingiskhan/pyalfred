@@ -22,7 +22,8 @@ setup(
     description="Library for exposing SQLAlchemy models via REST in Falcon",
     packages=find_packages(include=(NAME, f"{NAME}.*")),
     install_requires=[
-        "auto_schema @ git+https://github.com/tingiskhan/auto-schema#egg=auto_schema"
+        "auto_schema @ git+https://github.com/tingiskhan/auto-schema#egg=auto_schema",
+        "query-serializer @ git+https://github.com/tingiskhan/query-serializer#egg=query_serializer",
         "sqlalchemy",
         "starlette",
         "pyparsing",

@@ -7,10 +7,10 @@ from starlette.responses import JSONResponse
 from starlette.status import HTTP_500_INTERNAL_SERVER_ERROR, HTTP_200_OK
 from pyalfred.contract.utils import chunk, serialize
 from auto_schema import AutoMarshmallowSchema
-from pyalfred.contract.query import QueryBuilder
+from query_serializer import QueryBuilder
 from pyalfred.contract.utils import get_columns_in_base_mixin
-from ..utils import make_base_logger, apply_filter_from_string
-from ...constants import CHUNK_SIZE
+from pyalfred.server.utils import make_base_logger, apply_filter_from_string
+from pyalfred.constants import CHUNK_SIZE
 
 
 def get_bool_from_string(x: str):
