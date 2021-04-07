@@ -75,8 +75,7 @@ class DatabaseResource(HTTPEndpoint):
             filter_ = req.query_params.get("filter", None)
             if filter_:
                 query_builder = QueryBuilder(self.model)
-                filter_ = query_builder.from_string(filter_)
-                query = query.filter(filter_)
+                query = query_builder.from_string(query, filter_)
 
             ops = req.query_params.get("ops", "")
             result = apply_filter_from_string(self.model, query, ops.split(","))
